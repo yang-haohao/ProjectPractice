@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.today.step.lib.ISportStepInterface;
@@ -31,21 +32,30 @@ public class MainActivity extends AppCompatActivity {
     private int mStepSum;
 
     private ISportStepInterface iSportStepInterface;
+    //与aidl文件产生关系
 
     private TextView mStepArrayTextView;
 
     private TextView timeTextView;
+
+    private Button start;
+
+    private Button stop;
+
+    private Button zero;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //初始化计步模块
+        //初始化计步模块，与TodayStepManager类产生联系
         TodayStepManager.startTodayStepService(getApplication());
 
         timeTextView = (TextView) findViewById(R.id.timeTextView);
         mStepArrayTextView = (TextView) findViewById(R.id.stepArrayTextView);
+        start=(Button)findViewById(R.id.start);
+        stop=(Button)findViewById(R.id.stop);
 
         //开启计步Service，同时绑定Activity进行aidl通信
         Intent intent = new Intent(this, TodayStepService.class);
@@ -71,8 +81,22 @@ public class MainActivity extends AppCompatActivity {
             }
         }, Context.BIND_AUTO_CREATE);
 
-        //计时器
-        mhandmhandlele.post(timeRunable);
+        start.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isPause=false;
+                mhandmhandlele.post(timeRunable);
+                mDelayHandler.sendEmptyMessageDelayed(REFRESH_STEP_WHAT, TIME_INTERVAL_REFRESH);
+            }
+        });
+
+        stop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isPause=true;
+                mDelayHandler.removeCallbacksAndMessages(null);
+            }
+        });
 
     }
 
@@ -106,8 +130,16 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateStepCount() {
         Log.e(TAG, "updateStepCount : " + mStepSum);
-        TextView stepTextView = (TextView) findViewById(R.id.stepTextView);
+        final TextView stepTextView = (TextView) findViewById(R.id.stepTextView);
         stepTextView.setText(mStepSum + "步");
+
+        zero=(Button)findViewById(R.id.zero);
+        zero.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stepTextView.setText("0" + "步");
+            }
+        });
 
     }
 
